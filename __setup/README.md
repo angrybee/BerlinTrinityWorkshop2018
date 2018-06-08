@@ -78,7 +78,7 @@ sudo mount /dev/nvme1n1  /data
 #- if want to keep on reboot: update /etc/fstab
 sudo cp /etc/fstab /etc/fstab.orig
 -add entry via vim:
-UUID=15309c9c-b3bc-4557-adfa-3e51f2570b72	/	ext4	defaults,nofail	0	2
+UUID=15309c9c-b3bc-4557-adfa-3e51f2570b72	/data	ext4	defaults,nofail	0	2
 
 
 
