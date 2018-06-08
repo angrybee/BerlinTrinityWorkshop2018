@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 docker_image = "trinityctat/berlin2018"
 
-resources_dir = "/data/resources/workshop_shared/shared"
+resources_dir = "/data/resources/workshop_shared"
 def main():
 
     parser = argparse.ArgumentParser(description="instantiate user spaces", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -53,7 +53,7 @@ def main():
             
         # launch docker
         cmd = str("sudo docker run --rm -v {}:/home/training ".format(user_dir) +
-                  " -v {}:/home/training/shared_ro:ro ".format(resources_dir) +
+                  " -v {}/shared:/home/training/shared_ro:ro ".format(resources_dir) +
                   " -v {}:/var/www/html ".format(user_dir) +
                   " -v {}/js:/var/www/html/js:ro ".format(resources_dir) +
                   " -v {}/css:/var/www/html/css:ro ".format(resources_dir) +
