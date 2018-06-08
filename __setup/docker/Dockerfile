@@ -11,7 +11,12 @@ RUN apt-get update && apt-get install -y build-essential curl unzip apache2 supe
     texlive-latex-base \
     default-jre \
     python-pip python-dev \
-    && apt-get clean
+        build-essential wget libghc-zlib-dev libncurses-dev libbz2-dev liblzma-dev libpcre3-dev libxml2-dev \
+        libblas-dev gfortran git unzip ftp libzmq3-dev nano ftp fort77 libreadline-dev libcurl4-openssl-dev libx11-dev libxt-dev \
+        x11-common libcairo2-dev libpng12-dev libreadline6-dev libjpeg8-dev pkg-config && \
+        apt-get clean
+
+
 
 RUN curl -L https://cpanmin.us | perl - App::cpanminus
 
@@ -89,7 +94,9 @@ WORKDIR /usr/local/src
 #########
 RUN git clone https://github.com/liftoff/GateOne/ && \
     cd GateOne && python setup.py install && \
-    python run_gateone.py --configure && cd ..
+        pip install tornado==4.5.3 && \
+            python run_gateone.py --configure
+
 
 
 
@@ -118,7 +125,7 @@ RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstall
 ENV SRC /usr/local/src
 ENV BIN /usr/local/bin
 
-ENV TRINITY_VERSION="2.4.0"
+ENV TRINITY_VERSION="2.6.6"
 
 WORKDIR $SRC
 
@@ -131,9 +138,30 @@ RUN cd trinityrnaseq-Trinity-v${TRINITY_VERSION} && make
 
 ENV TRINITY_HOME $SRC/trinityrnaseq-Trinity-v${TRINITY_VERSION}
 
-RUN cp $TRINITY_HOME/trinity-plugins/BIN/samtools $BIN
 
 ENV PATH=${TRINITY_HOME}:${PATH}
+
+
+## samtools
+RUN wget https://github.com/samtools/samtools/releases/download/1.7/samtools-1.7.tar.bz2 && \
+    tar xvf samtools-1.7.tar.bz2 && \
+        cd samtools-1.7/ && \
+            ./configure && make && make install
+
+## Jellyfish
+RUN wget https://github.com/gmarcais/Jellyfish/releases/download/v2.2.7/jellyfish-2.2.7.tar.gz && \
+    tar xvf jellyfish-2.2.7.tar.gz && \
+        cd jellyfish-2.2.7/ && \
+            ./configure && make && make install
+
+
+## Salmon
+WORKDIR $SRC
+RUN wget https://github.com/COMBINE-lab/salmon/releases/download/v0.9.1/Salmon-0.9.1_linux_x86_64.tar.gz && \
+    tar xvf Salmon-0.9.1_linux_x86_64.tar.gz && \
+        ln -s $SRC/Salmon-latest_linux_x86_64/bin/salmon $BIN/.
+
+
 
 
 
@@ -143,14 +171,7 @@ RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstall
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("gplots", dep = TRUE)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("Biobase", dep = TRUE)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("qvalue", dep = TRUE)'
-
-RUN     apt-get update && apt-get install -y \
-        build-essential wget libghc-zlib-dev libncurses-dev libbz2-dev liblzma-dev libpcre3-dev libxml2-dev \
-        libblas-dev gfortran git unzip ftp libzmq3-dev nano ftp fort77 libreadline-dev libcurl4-openssl-dev libx11-dev libxt-dev \
-        x11-common libcairo2-dev libpng12-dev libreadline6-dev libjpeg8-dev pkg-config && \
-        apt-get clean
-
-
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("fastclust", dep = TRUE)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("goseq", dep = TRUE)'
 
 ## bowtie
@@ -160,27 +181,7 @@ RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.1.2/bowtie-1
 	cp bowtie-1.1.2/bowtie* $BIN
 
 
-## RSEM
-RUN mkdir /usr/local/lib/site_perl
-WORKDIR $SRC
-RUN wget https://github.com/deweylab/RSEM/archive/v1.2.31.tar.gz && \
-    tar xvf v1.2.31.tar.gz && \
-    cd RSEM-1.2.31 && \
-    make && \
-    cp rsem-* $BIN && \
-    cp rsem_perl_utils.pm /usr/local/lib/site_perl/
-    
-
-## Kallisto
-WORKDIR $SRC
-RUN wget https://github.com/pachterlab/kallisto/releases/download/v0.42.5/kallisto_linux-v0.42.5.tar.gz && \
-    tar xvf kallisto_linux-v0.42.5.tar.gz && \
-    cp kallisto_linux-v0.42.5/kallisto $BIN
-
-
 ## Trinotate
-
-
 WORKDIR $SRC
 RUN git clone --recursive https://github.com/Trinotate/Trinotate.git
 
@@ -261,9 +262,12 @@ RUN echo "SetEnv LOCAL_JS 1" >> /etc/apache2/apache2.conf
 # tmhmm
 WORKDIR $SRC
 
+
+
 ADD signalp-4.1.zip $SRC
 RUN unzip signalp-4.1.zip && \
     ln -s $SRC/signalp-4.1/signalp /usr/local/bin/signalp && \
+    mkdir -p  /usr/local/lib/site_perl && \
     cp /usr/local/src/signalp-4.1/lib/FASTA.pm /usr/local/lib/site_perl/ && \
     cp -r /usr/local/src/signalp-4.1 $BIN/
 
@@ -272,8 +276,6 @@ RUN unzip tmhmm-2.0c.zip && \
     cp -r $SRC/tmhmm-2.0c/bin/* /usr/local/bin/ && \
     cp -r $SRC/tmhmm-2.0c/lib/* /usr/local/lib/
 
-
-RUN echo export TRINITY_HOME=/usr/local/src/trinityrnaseq-Trinity-v2.4.0 >> /etc/environment
 
 
 # install SRA toolkit
@@ -288,6 +290,31 @@ ENV TERM=xterm-256color
 
 RUN apt-get update && apt-get install -y dialog screen && apt-get clean
 
+RUN pip install numpy
+
+RUN echo export TRINITY_HOME=${TRINITY_HOME} >> /etc/environment
+
+RUN export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH} >> /etc/environment
+
+ENV LD_LIBRARY_PATH /usr/local/lib:${LD_LIBRARY_PATH}
+
+
+## RSEM
+
+WORKDIR $SRC
+RUN wget https://github.com/deweylab/RSEM/archive/v1.3.0.tar.gz && \
+    tar xvf v1.3.0.tar.gz && \
+        cd RSEM-1.3.0 && \
+            make && \
+                cp rsem-* $BIN && \
+                cp convert-sam-for-rsem $BIN && \
+                    cp rsem_perl_utils.pm /usr/local/lib/site_perl/ && \
+                        cd ../ && rm -r RSEM-1.3.0
+                        
+
+
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstaller); biocLite("fastcluster", dep = TRUE)'
+  
 WORKDIR $HOME
 
 

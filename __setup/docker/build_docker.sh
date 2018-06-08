@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker build -t trinityctat/berlin2017 .
+docker build -t trinityctat/berlin2018 .
 

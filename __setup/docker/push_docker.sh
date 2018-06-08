@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker push trinityctat/berlin2017:latest
+docker push trinityctat/berlin2018:latest
 
