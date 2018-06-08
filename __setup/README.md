@@ -37,6 +37,8 @@ ssh 22
 storage:
 /dev/sdb 2T
 
+root volume: 300G
+
 
 ssh -i trinity.pem ubuntu@IP.address
 
@@ -65,14 +67,17 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 
 lsblk
 sudo file -s /dev/nvme1n1
+
+# if new fs:
 sudo mkfs -t ext4 /dev/nvme1n1
+
+
 sudo mkdir /data
 sudo mount /dev/nvme1n1  /data
 
-#- update /etc/fstab
+#- if want to keep on reboot: update /etc/fstab
 sudo cp /etc/fstab /etc/fstab.orig
-
-add entry via vim:
+-add entry via vim:
 UUID=15309c9c-b3bc-4557-adfa-3e51f2570b72	/	ext4	defaults,nofail	0	2
 
 
@@ -90,10 +95,22 @@ sudo chmod 775 resources/
 
 
 wget https://data.broadinstitute.org/Trinity/RNASEQ_WORKSHOP/TRINITY_Berlin_2017_ws_data_bundle.tar.gz
+tar xvf TRINITY_Berlin_2017_ws_data_bundle.tar.gz
 
-    tar xvf TRINITY_Berlin_2017_ws_data_bundle.tar.gz
+sudo chgrp -R training workshop_shared
 
-    exit
+
+### Set up instances
+
+cd /data
+sudo chgrp training .
+sudo chmod 775 .
+
+/home/ubuntu/BerlinTrinityWorkshop2018/__setup/user_setup/init_users.py --num_users 25 --ip_addr 34.221.39.3  | tee cmds.txt
+
+elastic ip: 54.200.153.6
+
+
 
 ### retain elastic IP addr in bashrc
 export IPADDR=${elastic_ip} >> .bashrc 
