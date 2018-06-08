@@ -1,5 +1,5 @@
 # BerlinTrinityWorkshop2017
-workshop in Bern, Switzerland in Oct 2016
+workshop in Berlin, June 2018
 
 
 ### Docker setup (instance initialization by AWS)
@@ -12,12 +12,33 @@ sudo service docker start
 
 ### trinity ws materials:
 
-*  pull workshop supporting code: git clone https://github.com/trinityrnaseq/BerlinTrinityWorkshop2017.git
-*  ftp'd data from Broad as: <https://data.broadinstitute.org/Trinity/RNASEQ_WORKSHOP/TRINITY_Berlin_2017_ws_data_bundle.tar.gz>
+*  pull workshop supporting code: git clone https://github.com/trinityrnaseq/BerlinTrinityWorkshop2018.git
 
 ## Server Setup:
 
-AWS: m4.16xlarge, 1T disk, and assign elastic IP address.
+
+AWS: m5.24xlarge: 96 CPU, 384 G RAM, 2T disk
+
+
+under advanced details:
+#!/bin/bash
+curl https://get.docker.com | sh
+sudo usermod -a -G docker ubuntu
+sudo service docker start
+
+
+ports:
+ssh 22
+8000-8025
+9000-9025
+10000-10025
+
+
+storage:
+/dev/sdb 2T
+
+
+ssh -i trinity.pem ubuntu@IP.address
 
 ### Create a user:pass of training:training
 
@@ -34,14 +55,42 @@ sudo apt-get install -y python
 
 ### Pull the Docker images from Dockerhub:
 
-    sudo docker pull trinityctat/berlin2017
+    sudo docker pull trinityctat/berlin2018
+
+
+
+# set up EBS storage
+
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+
+lsblk
+sudo file -s /dev/nvme1n1
+sudo mkfs -t ext4 /dev/nvme1n1
+sudo mkdir /data
+sudo mount /dev/nvme1n1  /data
+
+#- update /etc/fstab
+sudo cp /etc/fstab /etc/fstab.orig
+
+add entry via vim:
+UUID=15309c9c-b3bc-4557-adfa-3e51f2570b72	/	ext4	defaults,nofail	0	2
+
+
 
 
 ### Prep shared folders under /home/training
 
-    sudo mv TRINITY_Berlin_2017_ws_data_bundle.tar.gz /home/training
-    su training
-    cd $HOME
+cd /data
+sudo mkdir resources
+sudo usermod -a -G training ubuntu
+logout, login
+cd /data
+sudo chgrp training resources
+sudo chmod 775 resources/
+
+
+wget https://data.broadinstitute.org/Trinity/RNASEQ_WORKSHOP/TRINITY_Berlin_2017_ws_data_bundle.tar.gz
+
     tar xvf TRINITY_Berlin_2017_ws_data_bundle.tar.gz
 
     exit

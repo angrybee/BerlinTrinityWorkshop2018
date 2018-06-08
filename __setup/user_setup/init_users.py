@@ -52,7 +52,7 @@ def main():
             os.makedirs(user_dir)
             
         # launch docker
-        cmd = str("docker run -v {}:/home/training ".format(user_dir) +
+        cmd = str("sudo docker run --rm -v {}:/home/training ".format(user_dir) +
                   " -v /home/training/workshop_shared/shared:/home/training/shared_ro:ro " +
                   " -v {}:/var/www/html ".format(user_dir) +
                   " -v /home/training/workshop_shared/js:/var/www/html/js:ro " +
