@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 apache_user_port_default = 8001
 gateone_user_port_default = 9001
+sftp_user_port_default = 10001
 
 def main():
 
@@ -28,12 +29,14 @@ def main():
     parser.add_argument("--user_id_start", type=int, default=1, help="index to start user IDs (ex. 1)")
     parser.add_argument("--apache_base_port", type=int, default=apache_user_port_default, help="base port for apache")
     parser.add_argument("--gateone_base_port", type=int, default=gateone_user_port_default, help="base port for gateone")
+    parser.add_argument("--sftp_base_port", type=int, default=sftp_user_port_default, help="sftp port")
         
     args = parser.parse_args()
     
     apache_user_port = args.apache_base_port
     gateone_user_port = args.gateone_base_port
-        
+    sftp_user_port = args.sftp_base_port
+    
     ip_addr_list = args.ip_addr
     num_ip_addr = len(ip_addr_list)
 
@@ -50,8 +53,8 @@ def main():
 
     prev_ip_bin = 0
 
-    print("|" + "|".join(["Attendee", "SSH", "FileViewer"]) + "|")
-    print("|" + "|".join(["-------------", "----------------", "------------------"]) + "|")
+    print("|" + "|".join(["Attendee", "SSH", "FileViewer", "sftp_url"]) + "|")
+    print("|" + "|".join(["-------------", "----------------", "------------------", "--------------------"]) + "|")
     
     for i, attendee in enumerate(attendee_list):
         
@@ -60,18 +63,22 @@ def main():
             # reset
             apache_user_port = apache_user_port_default
             gateone_user_port = gateone_user_port_default
-    
+            sftp_user_port = sftp_user_port_default
             prev_ip_bin = ip_bin
         
         ip_addr = ip_addr_list[ip_bin]
 
         attendee_name = attendee.rstrip()
-        print("|" + "|".join([attendee_name, url_maker(ip_addr, gateone_user_port), url_maker(ip_addr, apache_user_port)]) + "|")
+        print("|" + "|".join([attendee_name,
+                              url_maker(ip_addr, gateone_user_port),
+                              url_maker(ip_addr, apache_user_port),
+                             "{}:{}".format(ip_addr, sftp_user_port)]
+                             ) + "|")
         
         
         apache_user_port += 1
         gateone_user_port += 1
-
+        sftp_user_port += 1
 
         user_id += 1
     
@@ -82,7 +89,7 @@ def main():
 
 def url_maker(ip_addr, port_num):
 
-    return(ip_addr + ":" + str(port_num))
+    return("http://" + ip_addr + ":" + str(port_num))
 
 
 
