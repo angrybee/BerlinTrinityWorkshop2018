@@ -12,14 +12,14 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-docker_image = "trinityctat/berlin2017"
+docker_image = "trinityctat/berlin2018"
 
+resources_dir = "/data/resources/workshop_shared"
 def main():
 
     parser = argparse.ArgumentParser(description="instantiate user spaces", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument("--num_users", type=int, default="", required=True, help="number of users")
-    parser.add_argument("--ip_addr", type=str, required=True, help="IP address for server")
 
     parser.add_argument("--user_id_start", type=int, default=1, help="index to start user IDs (ex. 1)")
     
@@ -53,10 +53,10 @@ def main():
             
         # launch docker
         cmd = str("sudo docker run --rm -v {}:/home/training ".format(user_dir) +
-                  " -v /home/training/workshop_shared/shared:/home/training/shared_ro:ro " +
+                  " -v {}/shared:/home/training/shared_ro:ro ".format(resources_dir) +
                   " -v {}:/var/www/html ".format(user_dir) +
-                  " -v /home/training/workshop_shared/js:/var/www/html/js:ro " +
-                  " -v /home/training/workshop_shared/css:/var/www/html/css:ro " +
+                  " -v {}/js:/var/www/html/js:ro ".format(resources_dir) +
+                  " -v {}/css:/var/www/html/css:ro ".format(resources_dir) +
                   " -p {}:22 -p {}:80 -p {}:443 ".format(ssh_user_port, apache_user_port, gateone_user_port) +
                   " --name trinity_{} -d {}".format(user, docker_image))
         
