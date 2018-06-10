@@ -1,2 +1,2 @@
-# BerlinTrinityWorkshop2017
-workshop in Berlin, mid-June 2017
+# BerlinTrinityWorkshop2018
+workshop in Berlin, mid-June 2018

@@ -317,5 +317,5 @@ RUN Rscript -e 'source("http://bioconductor.org/biocLite.R");library(BiocInstall
   
 WORKDIR $HOME
 
-
+RUN echo export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH} >> /etc/environment
 
