@@ -319,3 +319,4 @@ WORKDIR $HOME
 
 RUN echo export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH} >> /etc/environment
 
+RUN pip install git+https://github.com/ewels/MultiQC.git
